@@ -14,12 +14,16 @@
     <div style="display: flex; gap: 2rem;">
         <aside class="sidebar" style="width: 250px; flex-shrink: 0;">
             <h3>Categories</h3>
-            <select id="category-select" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #ccc;">
-                <option value="{% url 'store:product_list' %}" {% if not category %}selected{% endif %}>All</option>
+            <ul class="category-list">
+                <li>
+                    <a href="{% url 'store:product_list' %}" {% if not category %}class="active"{% endif %}>All</a>
+                </li>
                 {% for c in categories %}
-                    <option value="{{ c.get_absolute_url }}" {% if category.slug == c.slug %}selected{% endif %}>{{ c.name }}</option>
+                    <li>
+                        <a href="{{ c.get_absolute_url }}" {% if category.slug == c.slug %}class="active"{% endif %}>{{ c.name }}</a>
+                    </li>
                 {% endfor %}
-            </select>
+            </ul>
         </aside>
 
         <div style="flex-grow: 1;">
@@ -36,6 +40,12 @@
                                     <a href="{{ medicine.get_absolute_url }}">{{ medicine.name }}</a>
                                 </div>
                                 <div class="product-price">${{ medicine.price }}</div>
+                                <form action="{% url 'store:cart_add' medicine.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="override" value="False">
+                                    <input type="submit" value="Add to cart" class="btn" style="width: 100%; margin-top: 1rem; padding: 0.5rem;">
+                                </form>
                             </div>
                         </div>
                     {% endfor %}
@@ -46,27 +56,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const categorySelect = document.getElementById('category-select');
             const productGridContainer = document.getElementById('product-grid-container');
+            const categoryList = document.querySelector('.category-list');
 
-            categorySelect.addEventListener('change', function() {
-                const url = this.value;
-
-                fetch(url)
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newProductGrid = doc.querySelector('.product-grid');
+            if (categoryList) {
+                categoryList.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A') {
+                        e.preventDefault();
+                        const url = e.target.getAttribute('href');
                         
-                        if (newProductGrid) {
-                            productGridContainer.innerHTML = '';
-                            productGridContainer.appendChild(newProductGrid);
-                            history.pushState(null, '', url);
-                        }
-                    })
-                    .catch(error => console.error('Error loading products:', error));
-            });
+                        // Update active state visually
+                        const currentActive = categoryList.querySelector('a.active');
+                        if (currentActive) currentActive.classList.remove('active');
+                        e.target.classList.add('active');
+
+                        fetch(url)
+                            .then(response => response.text())
+                            .then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const newProductGrid = doc.querySelector('.product-grid');
+                                
+                                if (newProductGrid) {
+                                    productGridContainer.innerHTML = '';
+                                    productGridContainer.appendChild(newProductGrid);
+                                    history.pushState(null, '', url);
+                                }
+                            })
+                            .catch(error => console.error('Error loading products:', error));
+                    }
+                });
+            }
 
             window.addEventListener('popstate', function() {
                 location.reload();
