@@ -14,7 +14,7 @@
     <div style="display: flex; gap: 2rem;">
         <aside class="sidebar" style="width: 250px; flex-shrink: 0;">
             <h3>Categories</h3>
-            <select onchange="location = this.value;" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #ccc;">
+            <select id="category-select" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #ccc;">
                 <option value="{% url 'store:product_list' %}" {% if not category %}selected{% endif %}>All</option>
                 {% for c in categories %}
                     <option value="{{ c.get_absolute_url }}" {% if category.slug == c.slug %}selected{% endif %}>{{ c.name }}</option>
@@ -23,22 +23,54 @@
         </aside>
 
         <div style="flex-grow: 1;">
-            <div class="product-grid">
-                {% for medicine in medicines %}
-                    <div class="product-card">
-                        <a href="{{ medicine.get_absolute_url }}">
-                            <img src="{% if medicine.image %}{{ medicine.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" class="product-image">
-                        </a>
-                        <div class="product-info">
-                            <div class="product-category">{{ medicine.category.name }}</div>
-                            <div class="product-name">
-                                <a href="{{ medicine.get_absolute_url }}">{{ medicine.name }}</a>
+            <div id="product-grid-container">
+                <div class="product-grid">
+                    {% for medicine in medicines %}
+                        <div class="product-card">
+                            <a href="{{ medicine.get_absolute_url }}">
+                                <img src="{% if medicine.image %}{{ medicine.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" class="product-image">
+                            </a>
+                            <div class="product-info">
+                                <div class="product-category">{{ medicine.category.name }}</div>
+                                <div class="product-name">
+                                    <a href="{{ medicine.get_absolute_url }}">{{ medicine.name }}</a>
+                                </div>
+                                <div class="product-price">${{ medicine.price }}</div>
                             </div>
-                            <div class="product-price">${{ medicine.price }}</div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.getElementById('category-select');
+            const productGridContainer = document.getElementById('product-grid-container');
+
+            categorySelect.addEventListener('change', function() {
+                const url = this.value;
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newProductGrid = doc.querySelector('.product-grid');
+                        
+                        if (newProductGrid) {
+                            productGridContainer.innerHTML = '';
+                            productGridContainer.appendChild(newProductGrid);
+                            history.pushState(null, '', url);
+                        }
+                    })
+                    .catch(error => console.error('Error loading products:', error));
+            });
+
+            window.addEventListener('popstate', function() {
+                location.reload();
+            });
+        });
+    </script>
 {% endblock %}
