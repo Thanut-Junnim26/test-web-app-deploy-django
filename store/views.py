@@ -4,6 +4,9 @@ from .models import Category, Medicine, OrderItem
 from .cart import Cart
 from .forms import CartAddProductForm, OrderCreateForm
 
+def landing_page(request):
+    return render(request, 'store/landing.html')
+
 def product_list(request, category_slug=None):
     category = None
     categories = Category.objects.all()
