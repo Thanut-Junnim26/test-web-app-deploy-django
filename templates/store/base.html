@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medicine Store{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">MediStore</a>
+            <nav class="nav-links">
+                <a href="{% url 'store:product_list' %}">Shop</a>
+                <a href="{% url 'store:cart_detail' %}" class="cart-icon">
+                    Cart
+                    {% with total_items=cart|length %}
+                        {% if total_items > 0 %}
+                            <span class="cart-count">{{ total_items }}</span>
+                        {% endif %}
+                    {% endwith %}
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer style="background-color: var(--white); padding: 2rem 0; margin-top: 4rem; text-align: center; color: var(--light-text);">
+        <div class="container">
+            <p>&copy; 2023 MediStore. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

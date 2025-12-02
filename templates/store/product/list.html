@@ -1,0 +1,44 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Products{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="hero">
+        <h1>Welcome to MediStore</h1>
+        <p>Your trusted partner for health and wellness.</p>
+    </div>
+
+    <div style="display: flex; gap: 2rem;">
+        <aside class="sidebar" style="width: 250px; flex-shrink: 0;">
+            <h3>Categories</h3>
+            <select onchange="location = this.value;" style="width: 100%; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #ccc;">
+                <option value="{% url 'store:product_list' %}" {% if not category %}selected{% endif %}>All</option>
+                {% for c in categories %}
+                    <option value="{{ c.get_absolute_url }}" {% if category.slug == c.slug %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </aside>
+
+        <div style="flex-grow: 1;">
+            <div class="product-grid">
+                {% for medicine in medicines %}
+                    <div class="product-card">
+                        <a href="{{ medicine.get_absolute_url }}">
+                            <img src="{% if medicine.image %}{{ medicine.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" class="product-image">
+                        </a>
+                        <div class="product-info">
+                            <div class="product-category">{{ medicine.category.name }}</div>
+                            <div class="product-name">
+                                <a href="{{ medicine.get_absolute_url }}">{{ medicine.name }}</a>
+                            </div>
+                            <div class="product-price">${{ medicine.price }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
